@@ -1,4 +1,4 @@
-(defproject org.volenta/datamos.graphical-data-interface "0.1.0-SNAPSHOT"
+(defproject org.volenta/datamos.graphical-data-interface "0.1.6.0"
   :description "Default Graphical data interface for dataMos"
   :url "http://theinfotect.org/datamos"
   :license {:name "GNU AFFERO GENERAL PUBLIC LICENSE, Version 3"

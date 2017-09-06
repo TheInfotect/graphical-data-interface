@@ -1,6 +1,7 @@
 (ns datamos.graphical-data-interface.base
+  (:refer-clojure)
   (:require [mount.core :as mnt :refer [defstate]]
-            [clojure.tools.namespace.repl :refer [refresh]]
+            [clojure.tools.namespace.repl :refer [refresh set-refresh-dirs]]
             [clojure.core.async :as async]
             [ring.middleware
              [defaults :refer [wrap-defaults site-defaults]]]
@@ -10,7 +11,10 @@
             [taoensso.timbre :as timbre :refer [tracef debugf infof warnf errorf]]
             [taoensso.sente :as sente]
             [taoensso.sente.server-adapters.http-kit :refer [get-sch-adapter]]
-            [datamos.core :as dc]
+            [datamos
+             [core :as dc]
+             [base :as base]
+             [module-helpers :as hlp]]
             [datamos.graphical-data-interface.message-handler :as msgh]))
 
 (defonce http-server (atom nil))                      ; Watchable, read-only atom
@@ -48,6 +52,30 @@
 (def gdi-base
   (wrap-defaults handler site-defaults))
 
+; ----- response messages, back to gdi and user -----
+
+(defn response
+  [_ _ msg]
+  (chsk-send! msg))
+
+; ----- dataMos setup ------
+
+(def remote-components (atom {}))
+
+(defn local-register
+  []
+  @remote-components)
+
+(def component-fns (merge {:datamos-fn/message-response datamos.graphical-data-interface.base/response}
+                          (hlp/local-module-register remote-components)))
+
+(base/component-function {:dmsfn-def/module-type :dmsfn-def/core
+                          :dmsfn-def/module-name :dmsfn-def/gdi-access
+                          :datamos/local-register (datamos.graphical-data-interface.base/local-register)
+                          :dms-def/provides       datamos.graphical-data-interface.base/component-fns})
+
+;--- start / stop functions ----
+
 (defn stop-router []
   (when-let [stop-fn @http-router] (stop-fn)))
 
@@ -70,10 +98,9 @@
           :start (start-server)
           :stop (stop-server))
 
-(defn reset []
-  (mnt/stop)
-  (refresh :after 'mnt/start))
-
-(defn -main []
-  (mnt/start))
-
+(defn -main
+  [& args]
+  (do
+    (timbre/info "@-main - Config module starting")
+    (set-refresh-dirs "src/clj/datamos")
+    (dc/reset)))

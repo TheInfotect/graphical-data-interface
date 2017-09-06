@@ -86,7 +86,7 @@
 (rf/reg-event-db
   :initialize
   (fn [_ _]
-    {:quads
+    {:datamos/quads
      {:datamos-qry/query-context-graph01
                                  {:datamos-qry/select-query01 {:dmsqry-def/has-query-context-graph :datamos-qry/query-context-graph01
                                                                :rdf/type                           :dmsqry-def/select-query
@@ -143,7 +143,7 @@
    [:form
     [:button {:on-click #(do
                            (.preventDefault %)
-                           (rf/dispatch [:datamos/send-message :quads]))}
+                           (rf/dispatch [:datamos/send-message :datamos/quads]))}
      "Send Query"]]])
 
 (defn ui
